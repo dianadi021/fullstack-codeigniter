@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  codeigniter_app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.app
+    container_name: codeigniter_app
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "9000:9000"
+    depends_on:
+      - codeigniter_redis
+
+  codeigniter_redis:
+    image: redis:7
+    container_name: codeigniter_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./docker/redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - codeigniter_network
+
+  codeigniter_nginx:
+    image: nginx:alpine
+    container_name: codeigniter_nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - codeigniter_app
+
+volumes:
+  redis_data:
+
+networks:
+  codeigniter_network:
+    driver: bridge
